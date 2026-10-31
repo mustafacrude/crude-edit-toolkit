@@ -1,0 +1,21 @@
+{
+  "bundle": {
+    "fileAssociations": [
+      {
+        "ext": ["mkv", "mp4", "mov", "webm", "m4v", "avi", "ts", "flv"],
+        "name": "Video",
+        "role": "Viewer"
+      },
+      {
+        "ext": ["png", "jpg", "jpeg", "webp", "avif", "heic", "heif", "svg", "jxl", "tif", "tiff", "bmp"],
+        "name": "Image",
+        "role": "Viewer"
+      },
+      {
+        "ext": ["wav", "mp3", "m4a", "aac", "flac", "opus", "ogg"],
+        "name": "Audio",
+        "role": "Viewer"
+      }
+    ]
+  }
+}

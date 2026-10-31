@@ -1,0 +1,100 @@
+# Builds the installers when a version tag is pushed (for example v0.1.0) and
+# puts them, with the updater's latest.json, on a DRAFT release of this repo.
+# Nothing reaches anyone until that draft is published by hand.
+#
+# Secrets (Settings > Secrets and variables > Actions) in this repo:
+#   TAURI_SIGNING_PRIVATE_KEY           the updater signing key (contents of the .key file)
+#   TAURI_SIGNING_PRIVATE_KEY_PASSWORD  its password (empty if it has none)
+#
+# Actions are pinned to exact commits, because this job can see those secrets.
+
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+# Writing the draft release is the only thing this token is for.
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false # a Mac problem must not stop the Windows release
+      matrix:
+        include:
+          - name: Windows
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            args: --bundles nsis
+          # Switched off until an Apple Silicon ffmpeg and ffprobe are pinned in
+          # tools/manifest.json (fetch-tools skips a tool with no pinned build, so the
+          # build would run to the end on the costliest runner and then fail at bundling).
+          # When that's done, uncomment this and test it on a Mac.
+          # - name: macOS (Apple Silicon)
+          #   os: macos-latest
+          #   target: aarch64-apple-darwin
+          #   args: --target aarch64-apple-darwin --bundles app,dmg
+          #   experimental: true
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental == true }}
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: The tag must match the app's version
+        shell: bash
+        run: |
+          version=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          if [ "v$version" != "${GITHUB_REF_NAME}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} doesn't match version $version in tauri.conf.json" >&2
+            exit 1
+          fi
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+
+      - uses: swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+
+      - name: Download the bundled tools (checked against pinned hashes)
+        run: node scripts/fetch-tools.mjs --target ${{ matrix.target }}
+
+      - uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # action-v1.0.0
+        id: tauri
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: v__VERSION__
+          releaseName: Crude's Edit Toolkit v__VERSION__
+          releaseBody: See the README for install help. Windows will show a SmartScreen warning the first time (More info, then Run anyway).
+          releaseDraft: true
+          prerelease: false
+          uploadUpdaterJson: true
+          updaterJsonPreferNsis: true
+          args: ${{ matrix.args }}
+
+      # FFmpeg is a GPL build, so its source goes on the same release as the installer.
+      # (Whoever adds the Mac build also adds its FFmpeg's source here.)
+      - name: Attach FFmpeg's source to the release
+        if: matrix.name == 'Windows'
+        shell: bash
+        env:
+          RELEASE_ID: ${{ steps.tauri.outputs.releaseId }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/attach-ffmpeg-source.mjs

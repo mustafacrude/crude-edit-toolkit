@@ -1,0 +1,45 @@
+# Type-checks the screens and runs the Rust tests and lints, when started by hand
+# (Actions tab > CI > Run workflow). It is not automatic: a run is a full Windows Rust
+# build plus about 560 MB of tool downloads, so small fixes shouldn't each trigger one.
+# Run it before tagging a release.
+
+name: CI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: stable
+          components: clippy
+
+      - uses: swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+      - run: npx tsc --noEmit
+
+      # The Rust build checks that the bundled tools exist, so they are fetched first.
+      - name: Download the bundled tools
+        run: node scripts/fetch-tools.mjs
+
+      - run: cargo clippy --all-targets -- -D warnings
+        working-directory: src-tauri
+      - run: cargo test
+        working-directory: src-tauri

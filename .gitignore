@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.tools-cache/
+
+# Rust build output
+src-tauri/target/
+
+# Downloaded by scripts/fetch-tools.mjs; never committed
+src-tauri/binaries/
+src-tauri/resources/exiftool/
+
+# Local design-review notes
+.impeccable/
+.taste-skill/
+
+.DS_Store
+*.log

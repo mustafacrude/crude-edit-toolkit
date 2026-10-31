@@ -1,0 +1,150 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'Geist Mono Variable', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    --color-status-ok: var(--status-ok);
+    --color-status-warn: var(--status-warn);
+    --color-status-error: var(--status-error);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-primary-ink: var(--primary-ink);
+    --color-primary-soft: var(--primary-soft);
+    --color-progress: var(--progress);
+    --color-brand: var(--brand);
+    --color-faint: var(--faint);
+    --color-raised: var(--raised);
+    --color-chrome: var(--chrome);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* Dark only (BRIEF §12). Monotone: true neutral greys in three depths (page, panel,
+   raised), white text, and a white primary button. Colour is kept for what is
+   happening: --progress on running jobs and progress bars, the status colours, and
+   --brand on the logo mark alone. Selected things are a lighter grey with brighter text. */
+:root {
+    color-scheme: dark;
+    --background: #0b0b0c;
+    --foreground: #ededee;
+    --card: #131314;
+    --card-foreground: #ededee;
+    --popover: #1a1a1b;
+    --popover-foreground: #ededee;
+    --primary: #f4f4f5;
+    --primary-foreground: #0b0b0c;
+    --primary-ink: #ffffff;
+    --primary-soft: #212124;
+    --secondary: #1c1c1e;
+    --secondary-foreground: #ededee;
+    --muted: #1c1c1e;
+    --muted-foreground: #a1a1a6;
+    --faint: #8c8c92;
+    --raised: #1a1a1b;
+    --accent: #262629;
+    --accent-foreground: #ededee;
+    --destructive: #ff6b5e;
+    --border: #252527;
+    --input: #343437;
+    --ring: #9a9aa0;
+    --status-ok: #4ade80;
+    --status-warn: #f5b841;
+    --status-error: #ff6b5e;
+    --progress: #7c6cf6;
+    --brand: #6a58f5;
+    --chart-1: #ededee;
+    --chart-2: #7c6cf6;
+    --chart-3: #a1a1a6;
+    --chart-4: #4a4a4e;
+    --chart-5: #343437;
+    --radius: 0.625rem;
+    --sidebar: #101011;
+    --sidebar-foreground: #ededee;
+    --sidebar-primary: #f4f4f5;
+    --sidebar-primary-foreground: #0b0b0c;
+    --sidebar-accent: #1c1c1e;
+    --sidebar-accent-foreground: #ededee;
+    --sidebar-border: #252527;
+    --sidebar-ring: #9a9aa0;
+    /* The top bar and side rails sit a step below the page's panels. */
+    --chrome: #101011;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    /* Thin dark scrollbars instead of Windows' bulky light ones. */
+    scrollbar-width: thin;
+    scrollbar-color: #343437 transparent;
+  }
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-size: 14px;
+    /* A desktop app, not a page: no text selection on chrome, no rubber-band. */
+    user-select: none;
+    overscroll-behavior: none;
+  }
+  /* Behind transparent pictures, so their see-through parts show as such. */
+  .checker {
+    background-color: var(--raised);
+    background-image: repeating-conic-gradient(var(--accent) 0% 25%, transparent 0% 50%);
+    background-size: 16px 16px;
+  }
+  input, textarea, .selectable {
+    user-select: text;
+  }
+  button:not(:disabled), [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  html {
+    @apply font-sans;
+  }
+  /* Sizes, times and percentages don't jitter as they count. */
+  .tabular-nums, [role="progressbar"] {
+    font-variant-numeric: tabular-nums;
+  }
+}
