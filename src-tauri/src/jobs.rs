@@ -1393,8 +1393,9 @@ mod tests {
 
     #[test]
     fn reused_files_are_called_out() {
-        let a = PathBuf::from(r"D:\Dl\a.mp4");
-        let b = PathBuf::from(r"D:\Dl\b.mp4");
+        let dir = std::env::temp_dir();
+        let a = dir.join("a.mp4");
+        let b = dir.join("b.mp4");
         assert_eq!(reuse_warning(std::slice::from_ref(&a), &[]), None);
         assert_eq!(
             reuse_warning(std::slice::from_ref(&a), std::slice::from_ref(&b)),
