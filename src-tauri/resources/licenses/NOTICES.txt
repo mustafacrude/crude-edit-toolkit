@@ -42,7 +42,7 @@ Each of these is a separate program the app starts; none is part of the app's ow
 
  - yt-dlp 2026.10.21        Unlicense; its Windows program also contains the libraries listed in 2a
  - Deno 2.9.8              MIT
- - FFmpeg (ffmpeg, ffprobe) 9a9b70bb8c  GPL-3.0-or-later (a GPL build, with x264, x265 and others)
+ - FFmpeg (ffmpeg, ffprobe) 9a9b70bb8c  GPL-3.0-or-later (GPL builds, with x264, x265 and others; a different build on the Mac)
  - ExifTool 13.59          Artistic-1.0-Perl or GPL-1.0-or-later
  - TwitchDownloaderCLI 1.56.5  MIT
 
@@ -4794,21 +4794,30 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --- 2c. FFmpeg  (https://ffmpeg.org)
 
-This FFmpeg is a Windows build by BtbN, version n9.0.2 plus 35 commits (commit 9a9b70bb8c), made with
---enable-gpl --enable-version3. It is licensed under the GNU General Public License, version 3
-or later, whose text follows. It is built with x264, x265, SVT-AV1, libaom, Opus, Xvid,
-zimg, VMAF, Rubber Band and others, each under its own licence, and all combined under the GPL.
+Two different FFmpeg builds are used, one per platform. Both are licensed under the GNU General
+Public License, version 3 or later, whose text follows, and both are built with x264, x265,
+libaom, Opus, LAME and others, each under its own licence, all combined under the GPL.
 
-Source code. The complete corresponding source of this build is published as follows:
+Windows: a build by BtbN, version n9.0.2 plus 35 commits (commit 9a9b70bb8c), made with
+--enable-gpl --enable-version3.
   - FFmpeg at commit 9a9b70bb8c:
       https://github.com/FFmpeg/FFmpeg/tree/9a9b70bb8c
   - The build scripts, which name the exact version of every library that is built into it:
       https://github.com/BtbN/FFmpeg-Builds/tree/autobuild-2026-10-24-13-02
-  - Copies of both are attached to each release of Crude's Edit Toolkit on GitHub, in files
-    named ffmpeg-source-9a9b70bb8c.tar.gz and ffmpeg-builds-autobuild-2026-10-24-13-02.tar.gz:
-      https://github.com/mustafacrude/crude-edit-toolkit/releases
-  - Or ask for it by opening an issue at https://github.com/mustafacrude/crude-edit-toolkit/issues .
-    This offer is good for at least three years from the date of the release you received.
+  - Copies of both are attached to each Windows release of Crude's Edit Toolkit on GitHub, in
+    files named ffmpeg-source-9a9b70bb8c.tar.gz and ffmpeg-builds-autobuild-2026-10-24-13-02.tar.gz.
+
+Mac (Apple Silicon): a build by aagedal, FFmpeg 9.0.2, release v9.0.2-1, made with
+--enable-gpl --enable-version3 and no non-free components.
+  - FFmpeg 9.0.2 from https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz
+  - The build scripts, patches and the version of every library built into it:
+      https://github.com/aagedal/ffmpeg-apple-silicon/tree/v9.0.2-1
+  - Copies of both are attached to each Mac release of Crude's Edit Toolkit on GitHub, in files
+    named ffmpeg-9.0.2-source.tar.xz and ffmpeg-apple-silicon-v9.0.2-1.tar.gz.
+
+All releases are at https://github.com/mustafacrude/crude-edit-toolkit/releases . You can also
+ask for the source by opening an issue at https://github.com/mustafacrude/crude-edit-toolkit/issues .
+This offer is good for at least three years from the date of the release you received.
 
 GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007

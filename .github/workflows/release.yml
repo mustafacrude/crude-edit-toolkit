@@ -29,15 +29,12 @@ jobs:
             os: windows-latest
             target: x86_64-pc-windows-msvc
             args: --bundles nsis
-          # Switched off until an Apple Silicon ffmpeg and ffprobe are pinned in
-          # tools/manifest.json (fetch-tools skips a tool with no pinned build, so the
-          # build would run to the end on the costliest runner and then fail at bundling).
-          # When that's done, uncomment this and test it on a Mac.
-          # - name: macOS (Apple Silicon)
-          #   os: macos-latest
-          #   target: aarch64-apple-darwin
-          #   args: --target aarch64-apple-darwin --bundles app,dmg
-          #   experimental: true
+          # Not tested on a real Mac yet, so a failure here never blocks the Windows release.
+          - name: macOS (Apple Silicon)
+            os: macos-latest
+            target: aarch64-apple-darwin
+            args: --target aarch64-apple-darwin --bundles app,dmg
+            experimental: true
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.experimental == true }}
     timeout-minutes: 60
@@ -90,11 +87,9 @@ jobs:
           args: ${{ matrix.args }}
 
       # FFmpeg is a GPL build, so its source goes on the same release as the installer.
-      # (Whoever adds the Mac build also adds its FFmpeg's source here.)
       - name: Attach FFmpeg's source to the release
-        if: matrix.name == 'Windows'
         shell: bash
         env:
           RELEASE_ID: ${{ steps.tauri.outputs.releaseId }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/attach-ffmpeg-source.mjs
+        run: node scripts/attach-ffmpeg-source.mjs --target ${{ matrix.target }}

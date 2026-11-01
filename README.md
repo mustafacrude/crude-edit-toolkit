@@ -35,7 +35,7 @@ The installer isn't signed with a paid certificate, so Windows SmartScreen may s
 
 **Uninstall.** Settings → Apps → Installed apps → Crude's Edit Toolkit → Uninstall. Tick *Delete the application data* to also remove settings and history. Your downloads and processed files are never touched.
 
-**Mac (Apple Silicon).** Not ready yet. Once it is: open the `.dmg`, drag the app to Applications, and open it. macOS will say it can't verify the app. Don't use right-click → Open (that no longer works). Instead open **System Settings → Privacy & Security**, scroll down to the message about the app, and click **Open Anyway**, then confirm.
+**Mac (Apple Silicon).** Built by the same release, but not tested on a Mac yet, so treat it as a preview. Open the `.dmg`, drag the app to Applications, and open it. macOS will say it can't verify the app. Don't use right-click → Open (that no longer works). Instead open **System Settings → Privacy & Security**, scroll down to the message about the app, and click **Open Anyway**, then confirm.
 
 **Updates.** The app looks for a newer version, and a newer yt-dlp (the part that breaks when sites change), when it opens, at most once a day. Nothing installs until you click **Update available**, or **Update and retry** on a failed download. You can turn the check off in Settings.
 
@@ -91,7 +91,7 @@ yt-dlp, Deno, FFmpeg (a GPL build), ExifTool and TwitchDownloaderCLI come with t
 
 ## Not built yet
 
-A Mac test pass (the Mac build still needs an Apple Silicon ffmpeg pinned in `tools/manifest.json`). Planned for later: Twitch chat rendered as a video overlay and per-project output folders.
+A Mac test pass (the Mac build is set up and pinned but has never run on a real Mac; SVG pictures can't be converted there yet). Planned for later: Twitch chat rendered as a video overlay and per-project output folders.
 
 ## Licence
 

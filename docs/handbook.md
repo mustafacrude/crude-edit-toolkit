@@ -308,7 +308,7 @@ The toolkit is built so a long or mistaken job can't take your computer down. Wh
 **Not limited, honestly**
 
 - **The graphics card.** Nothing caps GPU use. The protection is that only one conversion runs at a time. Hardware encoders (NVENC, AMF, Quick Sync) use a dedicated part of the card and little CPU, and the app tests an encoder with a real five-frame encode before trusting it. A full system crash from a driver fault is not something an app can promise to prevent.
-- **The CPU limit and the memory cap** are Windows-only for now. The Mac code runs tools at lower priority and keeps the computer awake, but it has never been compiled or tested on a Mac, so treat all of that as planned.
+- **The CPU limit and the memory cap** are Windows-only for now. The Mac code runs tools at lower priority and keeps the computer awake, but it has not been tested on a Mac, so treat all of that as planned.
 
 **What it never does**
 
@@ -405,7 +405,7 @@ If a chrome-based browser's cookies don't work for sign-in, use Firefox or a `co
 
 Planned, not in the app today:
 
-- A **Mac build**: the code is set up for it (installer, Finder's Open With, VideoToolbox) but it needs an Apple Silicon ffmpeg pinned and hasn't been run on a Mac.
+- A **tested Mac build**: it's set up and built with each release (installer, Finder's Open With, VideoToolbox, an Apple Silicon ffmpeg) but hasn't been run on a Mac yet. One known gap: the Mac ffmpeg can't convert SVG pictures to PNG.
 - Twitch chat rendered as a video overlay, and per-project output folders (version 2).
 
 ## 14. Installing and uninstalling
@@ -414,4 +414,4 @@ Planned, not in the app today:
 
 To uninstall, use Settings → Apps → Installed apps → Crude's Edit Toolkit → Uninstall. That removes the program, the bundled tools, the Start menu entry and the right-click menu entry. Ticking **Delete the application data** also removes settings, history and logs (the folder in section 10). Your downloads and processed files are never touched.
 
-**Mac.** Not ready yet. When it is, drag the app to Applications and open it; macOS will refuse the first time, so go to **System Settings → Privacy & Security** and click **Open Anyway** (right-click → Open no longer works). To remove it, drag the app to the Trash; the settings folder in section 10 stays unless you delete it.
+**Mac (Apple Silicon, preview).** Drag the app to Applications and open it; macOS will refuse the first time, so go to **System Settings → Privacy & Security** and click **Open Anyway** (right-click → Open no longer works). To remove it, drag the app to the Trash; the settings folder in section 10 stays unless you delete it.

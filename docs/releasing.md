@@ -38,4 +38,14 @@ The app can only be shown an update by a real published release, so it takes two
 
 ## Mac
 
-The Mac job is commented out in `.github/workflows/release.yml` until an Apple Silicon `ffmpeg` and `ffprobe` are pinned (the `aarch64-apple-darwin` entry for ffmpeg in `tools/manifest.json` is `null`; `fetch-tools` skips a tool with no pinned build, so the build would only fail at the very end). The app is ad-hoc signed (`"signingIdentity": "-"`) and not notarized, so macOS needs *Open Anyway* the first time. None of the Mac code paths (Finder's Open With, the `.dmg`, VideoToolbox) has been run on a Mac.
+The Mac job is on in `.github/workflows/release.yml` (Apple Silicon, `experimental: true`, so a Mac failure never stops the Windows release) and in the manual **CI** workflow, which runs the same checks on a Mac runner. Every tool is pinned for `aarch64-apple-darwin` in `tools/manifest.json`. The Mac ffmpeg and ffprobe are aagedal's GPLv3 build (`v9.0.2-1`, Developer ID signed and notarized by its author; the app re-signs them ad hoc inside the bundle). The app is ad-hoc signed (`"signingIdentity": "-"`) and not notarized, so macOS needs *Open Anyway* the first time.
+
+What is still untested, and what to look for on the first Mac run:
+- **Whether it compiles and runs at all.** Run **CI** from the Actions tab first; it builds and tests on a Mac runner.
+- **The sidecars launching** from inside the signed bundle (ffmpeg, ffprobe, yt-dlp, Deno, TwitchDownloaderCLI). If a download or a conversion fails at once with "couldn't start", it's a signing or quarantine problem.
+- **ExifTool** is a Perl script on the Mac and relies on the `/usr/bin/perl` that macOS ships.
+- **SVG pictures** can't be converted to PNG on the Mac: its ffmpeg has no SVG renderer (the Windows build does).
+- Finder's Open With, the `.dmg` layout, VideoToolbox, notifications, the in-app update.
+- The licence offer for the Mac ffmpeg: each Mac release carries `ffmpeg-9.0.2-source.tar.xz` and `ffmpeg-apple-silicon-<tag>.tar.gz`, attached by the workflow.
+
+Moving the Mac ffmpeg later means changing its `url` and `sha256` in `tools/manifest.json`, re-running `npm run licenses`, and checking its `LICENSE` and build notes for the new version.
