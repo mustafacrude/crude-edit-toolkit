@@ -9,8 +9,10 @@ use std::path::Path;
 use std::sync::OnceLock;
 use std::sync::mpsc;
 
-/// What fraction of RAM the tools may use together, at least `MIN_MEMORY`.
+/// What fraction of RAM the tools may use together, at least `MIN_MEMORY` (Windows only).
+#[cfg(windows)]
 const MEMORY_SHARE: f64 = 0.7;
+#[cfg(windows)]
 const MIN_MEMORY: u64 = 2 * 1024 * 1024 * 1024;
 
 #[cfg(windows)]
