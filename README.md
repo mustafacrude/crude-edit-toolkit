@@ -2,7 +2,7 @@
 
 Everything that comes before editing in Premiere, in one small desktop app: download from a link, make any clip import cleanly, cut the parts you want, and clean up images. Drop a file or paste a link and it tells you what to do next.
 
-> **Status: pre-release (0.1.0).** It runs and is tested on Windows. Installers are built by GitHub Actions and published as releases (see [Install](#install)). A Mac build is set up but not ready or tested yet; until then, build from source.
+> **Status: pre-release (0.1.1).** It runs and is tested on Windows. Installers are built by GitHub Actions and published as releases (see [Install](#install)). A Mac build is set up but not ready or tested yet; until then, build from source.
 
 Only use it on content you own or have permission to use.
 

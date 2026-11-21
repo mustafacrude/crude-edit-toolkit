@@ -1,6 +1,6 @@
 [package]
 name = "crude-edit-toolkit"
-version = "0.1.0"
+version = "0.1.1"
 description = "Crude's Edit Toolkit: downloads and pre-edit fixes for Premiere"
 authors = ["Mustafa Crude"]
 license = "MIT"
