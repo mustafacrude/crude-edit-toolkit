@@ -100,6 +100,7 @@ const ff = tool("ffmpeg");
 const ffUrl = ff.platforms["x86_64-pc-windows-msvc"].url;
 const ffCommit = /-g([0-9a-f]{7,})-win64/.exec(ffUrl)?.[1];
 const ffBuild = /autobuild-[\d-]+/.exec(ffUrl)?.[0];
+const ffAhead = /-n[\d.]+-(\d+)-g/.exec(ffUrl)?.[1] ?? "?";
 if (!ffCommit || !ffBuild) throw new Error("Couldn't read the FFmpeg commit and build from tools/manifest.json");
 const macTag = /\/download\/(v[\d.]+-\d+)\//.exec(ff.platforms["aarch64-apple-darwin"]?.url ?? "")?.[1];
 if (!macTag) throw new Error("Couldn't read the Mac FFmpeg release from tools/manifest.json");
@@ -140,7 +141,7 @@ Two different FFmpeg builds are used, one per platform. Both are licensed under 
 Public License, version 3 or later, whose text follows, and both are built with x264, x265,
 libaom, Opus, LAME and others, each under its own licence, all combined under the GPL.
 
-Windows: a build by BtbN, version n9.0.2 plus 35 commits (commit ${ffCommit}), made with
+Windows: a build by BtbN, version n9.0.2 plus ${ffAhead} commits (commit ${ffCommit}), made with
 --enable-gpl --enable-version3.
   - FFmpeg at commit ${ffCommit}:
       https://github.com/FFmpeg/FFmpeg/tree/${ffCommit}
