@@ -12,6 +12,7 @@ Only use it on content you own or have permission to use.
 - **Playlists and channels** with a date range or "newest N", a folder per playlist, and a memory of what it already saved, so running a channel again only gets what's new.
 - **Chat replays** as JSON: Twitch VODs and clips (trimmed to the section you download) and YouTube live-stream chat.
 - **Make footage Premiere-safe**: H.264 at a constant frame rate with AAC audio, every audio track kept. Plus remux, constant-frame-rate fix, a full re-encode panel, proxies (ProRes Proxy or DNxHR LB) and compress-to-a-size (Discord's 10 MB and friends).
+- **Repair a cut-off recording** (Windows): rebuild an MP4 or MOV that was never finished, using a working video from the same camera, with [untrunc](https://github.com/anthwlock/untrunc), which is downloaded on request and kept up to date from Settings.
 - **Cut and join**: clip a list of time ranges, trim and merge clips (lossless when they match), grab frames, extract audio (one WAV per track).
 - **Images**: save pictures from a link, a Google Images result, a page or the clipboard, at full size; turn WebP, AVIF, HEIC, SVG and JPEG XL into PNGs Premiere imports; strip location, camera and Content Credentials (C2PA) without recompressing; and convert to WebP, with transparency and colour profiles handled properly.
 - **Inspect on drop**: it reads each file and says in plain words what Premiere will struggle with, then recommends the fix.
@@ -87,7 +88,7 @@ Adding a feature is a new file in `modules/` and one line in its list: the queue
 
 ## Bundled tools
 
-yt-dlp, Deno, FFmpeg (a GPL build), ExifTool and TwitchDownloaderCLI come with the app under their own licences. See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+yt-dlp, Deno, FFmpeg (a GPL build), ExifTool and TwitchDownloaderCLI come with the app under their own licences. untrunc (GPL-2.0-or-later) is not bundled: the app downloads its author's release only when you ask for Repair damaged video. See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
 
 ## Not built yet
 

@@ -1,8 +1,8 @@
 // Renders any tool's settings form from the schema it describes in Rust, so a
 // new module gets a working form without screen code.
-import { ArrowDown, ArrowUp, X } from "lucide-react";
+import { ArrowDown, ArrowUp, FolderOpen, X } from "lucide-react";
 import { fileName } from "@/lib/format";
-import { PREMIERE_SAFE, type EncodeSettings, type Field } from "@/lib/tauri";
+import { PREMIERE_SAFE, pickFiles, type EncodeSettings, type Field } from "@/lib/tauri";
 import { EncodePanel } from "@/components/encode-panel";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,7 +19,7 @@ export function defaults(schema: Field[]): FormValues {
   const values: FormValues = {};
   for (const f of schema) {
     if (f.kind === "select" || f.kind === "number" || f.kind === "toggle") values[f.key] = f.default;
-    else if (f.kind === "lines") values[f.key] = "";
+    else if (f.kind === "lines" || f.kind === "file") values[f.key] = "";
     else if (f.kind === "encode") values[f.key] = PREMIERE_SAFE;
     else if (f.kind === "trimList") values[f.key] = {};
   }
@@ -34,7 +34,7 @@ export function remembered(toolId: string, schema: Field[]): FormValues {
   try {
     const saved = JSON.parse(localStorage.getItem(memoryKey(toolId)) ?? "{}") as FormValues;
     for (const f of schema) {
-      if (f.kind !== "trimList" && f.key in saved && typeof saved[f.key] === typeof values[f.key]) values[f.key] = saved[f.key];
+      if (f.kind !== "trimList" && f.kind !== "file" && f.key in saved && typeof saved[f.key] === typeof values[f.key]) values[f.key] = saved[f.key];
     }
   } catch {
     // Nothing remembered, or storage is unavailable: the defaults are fine.
@@ -45,7 +45,7 @@ export function remembered(toolId: string, schema: Field[]): FormValues {
 export function remember(toolId: string, schema: Field[], values: FormValues) {
   try {
     const keep: FormValues = {};
-    for (const f of schema) if (f.kind !== "trimList") keep[f.key] = values[f.key];
+    for (const f of schema) if (f.kind !== "trimList" && f.kind !== "file") keep[f.key] = values[f.key];
     localStorage.setItem(memoryKey(toolId), JSON.stringify(keep));
   } catch {
     // Not remembering is harmless.
@@ -171,6 +171,32 @@ export function ToolForm({ schema, values, onChange, files, onFilesChange }: Too
                     className="h-8 w-28 font-mono text-[13px]"
                   />
                   <span className="text-[13px] text-muted-foreground">{f.unit}</span>
+                </div>
+              )}
+              {f.kind === "file" && (
+                <div className="flex min-w-0 items-center gap-2">
+                  <Button
+                    id={`field-${f.key}`}
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      const [picked] = await pickFiles("video").catch(() => []);
+                      if (picked) set(f.key, picked);
+                    }}
+                  >
+                    <FolderOpen />
+                    {values[f.key] ? "Choose another" : "Choose a file"}
+                  </Button>
+                  {typeof values[f.key] === "string" && values[f.key] !== "" && (
+                    <>
+                      <span className="min-w-0 truncate font-mono text-[13px]" title={String(values[f.key])}>
+                        {fileName(String(values[f.key]))}
+                      </span>
+                      <Button variant="ghost" size="icon-xs" aria-label="Clear the chosen file" onClick={() => set(f.key, "")}>
+                        <X />
+                      </Button>
+                    </>
+                  )}
                 </div>
               )}
               {f.kind === "lines" && (

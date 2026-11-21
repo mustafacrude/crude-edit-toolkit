@@ -11,6 +11,7 @@ use tauri_plugin_updater::UpdaterExt;
 
 use crate::settings::SettingsStore;
 use crate::tool_update;
+use crate::untrunc_update;
 
 /// A launch check at most this often, so GitHub's limit on anonymous requests is never an issue.
 const EVERY: Duration = Duration::from_secs(24 * 60 * 60);
@@ -24,6 +25,8 @@ pub struct Found {
     pub app: Option<AppUpdate>,
     /// A newer yt-dlp.
     pub yt_dlp: Option<tool_update::UpdateStatus>,
+    /// A newer untrunc, when it has been downloaded (nobody is nagged about a tool they never got).
+    pub untrunc: Option<tool_update::UpdateStatus>,
 }
 
 #[derive(Clone, Serialize)]
@@ -78,13 +81,22 @@ pub async fn install_app(app: &AppHandle) -> Result<(), String> {
 
 /// Looks for both, ignoring each one that can't be reached.
 pub async fn check_all(app: &AppHandle) -> Result<Found, String> {
-    let (app_update, tool) = tokio::join!(check_app(app), tool_update::check(app));
+    let untrunc = async {
+        if untrunc_update::is_installed(app) {
+            untrunc_update::check(app).await.ok().filter(|t| t.available)
+        } else {
+            None
+        }
+    };
+    let (app_update, tool, untrunc) =
+        tokio::join!(check_app(app), tool_update::check(app), untrunc);
     if app_update.is_err() && tool.is_err() {
         return Err(app_update.err().unwrap_or_default());
     }
     Ok(Found {
         app: app_update.ok().flatten(),
         yt_dlp: tool.ok().filter(|t| t.available),
+        untrunc,
     })
 }
 
@@ -119,7 +131,7 @@ pub async fn launch_check(app: AppHandle) {
         return;
     };
     let _ = std::fs::write(&stamp, now_secs().to_string());
-    if found.app.is_some() || found.yt_dlp.is_some() {
+    if found.app.is_some() || found.yt_dlp.is_some() || found.untrunc.is_some() {
         let _ = app.emit("updates-found", found);
     }
 }

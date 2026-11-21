@@ -16,6 +16,7 @@ mod settings;
 mod thumbs;
 mod timecode;
 mod tool_update;
+mod untrunc_update;
 mod tools;
 mod updates;
 
@@ -51,7 +52,12 @@ async fn licenses_text(app: AppHandle) -> Result<String, String> {
 /// Version check for every bundled tool, run in parallel off the UI thread.
 #[tauri::command]
 async fn tool_versions(app: AppHandle) -> Vec<tools::ToolInfo> {
-    let handles: Vec<_> = tools::Tool::ALL
+    // untrunc isn't bundled; it's listed once it has been downloaded.
+    let mut list = tools::Tool::ALL.to_vec();
+    if untrunc_update::is_installed(&app) {
+        list.push(tools::Tool::Untrunc);
+    }
+    let handles: Vec<_> = list
         .into_iter()
         .map(|tool| {
             let app = app.clone();
@@ -105,6 +111,7 @@ struct ModuleInfo {
 fn list_modules() -> Vec<ModuleInfo> {
     modules::all()
         .iter()
+        .filter(|m| m.available())
         .map(|m| ModuleInfo {
             id: m.id(),
             name: m.name(),
@@ -407,6 +414,16 @@ async fn update_yt_dlp(
     tool_update::update(&app, &lock).await
 }
 
+/// Downloads untrunc (first time) or the newest one (later), checks it and switches to it.
+/// Returns its version, or None when the one in use is already the newest.
+#[tauri::command]
+async fn update_untrunc(
+    app: AppHandle,
+    lock: State<'_, tool_update::Updating>,
+) -> Result<Option<String>, String> {
+    untrunc_update::update(&app, &lock).await
+}
+
 /// Goes back to the yt-dlp that came with the app.
 #[tauri::command]
 fn use_bundled_yt_dlp(app: AppHandle) -> Result<(), String> {
@@ -599,6 +616,7 @@ pub fn run() {
             opened::take_opened_files,
             check_for_updates,
             update_yt_dlp,
+            update_untrunc,
             use_bundled_yt_dlp,
             install_app_update,
             fetch_link_info,

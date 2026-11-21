@@ -133,7 +133,11 @@ function UpdateButton() {
   const { found } = useUpdates();
   const { openSettings } = useAppNav();
   if (!hasUpdate(found)) return null;
-  const what = found?.app ? "Update available" : "yt-dlp update";
+  const what = found?.app
+    ? "Update available"
+    : found?.ytDlp?.available
+      ? "yt-dlp update"
+      : "untrunc update";
   return (
     <Button
       variant="outline"

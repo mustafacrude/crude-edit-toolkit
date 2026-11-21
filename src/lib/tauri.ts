@@ -5,7 +5,7 @@ import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 
 export { isTauri };
 
-export type ToolId = "yt-dlp" | "deno" | "ffmpeg" | "ffprobe" | "exiftool" | "twitch-downloader";
+export type ToolId = "yt-dlp" | "deno" | "ffmpeg" | "ffprobe" | "exiftool" | "twitch-downloader" | "untrunc";
 
 export interface ToolInfo {
   id: ToolId;
@@ -68,6 +68,7 @@ export type Field =
     }
   | { kind: "toggle"; key: string; label: string; default: boolean; help: string | null }
   | { kind: "lines"; key: string; label: string; placeholder: string; help: string | null }
+  | { kind: "file"; key: string; label: string; help: string | null; required: boolean }
   | { kind: "encode"; key: string }
   | { kind: "trimList"; key: string };
 
@@ -387,11 +388,24 @@ export const skippedNotice = (found: number, skipped: number) =>
 /** What a look for updates found. Nothing is installed by looking. */
 export interface UpdatesFound {
   app: { version: string; notes: string | null } | null;
-  ytDlp: { tool: string; current: string | null; latest: string; available: boolean; downloaded: boolean } | null;
+  ytDlp: UpdateStatus | null;
+  /** Only looked for once untrunc has been downloaded. */
+  untrunc: UpdateStatus | null;
+}
+export interface UpdateStatus {
+  tool: string;
+  current: string | null;
+  latest: string;
+  available: boolean;
+  downloaded: boolean;
+  /** When the newest build was made (untrunc), as upstream states it. */
+  released: string | null;
 }
 export const checkForUpdates = () => invoke<UpdatesFound>("check_for_updates");
 /** Returns the new version, or null if the one in use is already the newest. */
 export const updateYtDlp = () => invoke<string | null>("update_yt_dlp");
+/** Downloads untrunc, or its newer build. Returns the build now in use, or null if it was already the newest. */
+export const updateUntrunc = () => invoke<string | null>("update_untrunc");
 export const goBackToBundledYtDlp = () => invoke<void>("use_bundled_yt_dlp");
 export const installAppUpdate = () => invoke<void>("install_app_update");
 export function onUpdatesFound(handler: (found: UpdatesFound) => void): Promise<UnlistenFn> {

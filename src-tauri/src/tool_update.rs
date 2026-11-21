@@ -36,6 +36,13 @@ const ASSET: &str = "yt-dlp_macos";
 #[derive(Default)]
 pub struct Updating(Mutex<()>);
 
+impl Updating {
+    /// Waits for any update in progress (yt-dlp or untrunc) to finish, then holds the turn.
+    pub async fn acquire(&self) -> tokio::sync::MutexGuard<'_, ()> {
+        self.0.lock().await
+    }
+}
+
 /// Which downloaded copy is in use. Absent: the one bundled with the app.
 #[derive(Default, Serialize, Deserialize)]
 struct Active {
@@ -46,7 +53,7 @@ struct Active {
     yt_dlp: Option<String>,
 }
 
-fn root(app: &AppHandle) -> Option<PathBuf> {
+pub(crate) fn root(app: &AppHandle) -> Option<PathBuf> {
     Some(app.path().app_data_dir().ok()?.join("tools"))
 }
 
@@ -105,6 +112,8 @@ pub struct UpdateStatus {
     pub available: bool,
     /// A downloaded copy is in use (so "Use the built-in one" makes sense).
     pub downloaded: bool,
+    /// When the newest version came out (YYYY-MM-DD), if its release says.
+    pub released: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -119,7 +128,7 @@ struct Asset {
     browser_download_url: String,
 }
 
-fn client() -> Result<reqwest::Client, String> {
+pub(crate) fn client() -> Result<reqwest::Client, String> {
     // Redirects may only stay within GitHub's own hosts.
     let policy = reqwest::redirect::Policy::custom(|attempt| {
         let ok = attempt.previous().len() < 6
@@ -139,12 +148,12 @@ fn client() -> Result<reqwest::Client, String> {
         .map_err(|e| e.to_string())
 }
 
-fn offline() -> String {
+pub(crate) fn offline() -> String {
     "Couldn't reach GitHub to look for an update. Check your internet connection and try again."
         .into()
 }
 
-async fn body(client: &reqwest::Client, url: &str, cap: u64) -> Result<Vec<u8>, String> {
+pub(crate) async fn body(client: &reqwest::Client, url: &str, cap: u64) -> Result<Vec<u8>, String> {
     let mut response = client.get(url).send().await.map_err(|_| offline())?;
     if !response.status().is_success() {
         return Err(
@@ -217,6 +226,7 @@ pub async fn check(app: &AppHandle) -> Result<UpdateStatus, String> {
         current,
         latest,
         downloaded: override_path(app).is_some(),
+        released: None,
     })
 }
 
@@ -315,7 +325,7 @@ fn self_test(exe: &Path) -> Option<String> {
         .then(|| String::from_utf8_lossy(&out.stdout).trim().to_string())
 }
 
-fn hex(bytes: &[u8]) -> String {
+pub(crate) fn hex(bytes: &[u8]) -> String {
     bytes.iter().map(|b| format!("{b:02x}")).collect()
 }
 

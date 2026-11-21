@@ -677,14 +677,17 @@ impl Queue {
         let mut touched = Touched::default();
         let ran = self.run_all(id, work, log, cancel, &mut touched).await;
         let Touched {
-            created, reused, ..
+            created,
+            reused,
+            notes,
+            ..
         } = touched;
         let result = match ran {
             Ok(()) => collect_outputs(work).map(|outputs| {
                 let warning = if work.partial_ok && outputs.is_empty() {
                     Some("Nothing new to download: everything that matched was already downloaded, or nothing matched the dates.".to_string())
                 } else {
-                    reuse_warning(&outputs, &reused)
+                    reuse_warning(&outputs, &reused).or_else(|| notes.first().cloned())
                 };
                 (outputs, warning)
             }),
@@ -891,6 +894,12 @@ impl Queue {
                 }
                 ctx.log(log, line);
             }
+            Feed::Note(text) => {
+                if !ctx.touched.notes.contains(&text) {
+                    ctx.touched.notes.push(text);
+                }
+                ctx.log(log, line);
+            }
             Feed::Log => ctx.log(log, line),
         }
     }
@@ -1005,6 +1014,8 @@ struct Touched {
     created: Vec<PathBuf>,
     /// Already in the folder, so the tool used them instead of downloading again.
     reused: Vec<PathBuf>,
+    /// What a tool said about a result that is only partly good (see `Feed::Note`).
+    notes: Vec<String>,
     /// When the job began (with a little slack for file clocks). A file the tool
     /// says it's writing counts as ours only if it didn't exist, or was written
     /// since then: yt-dlp prints "Writing …" just after the file appears.
@@ -1016,6 +1027,7 @@ impl Default for Touched {
         Self {
             created: Vec::new(),
             reused: Vec::new(),
+            notes: Vec::new(),
             started: SystemTime::now() - Duration::from_secs(2),
         }
     }

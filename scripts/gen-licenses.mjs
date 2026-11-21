@@ -119,6 +119,9 @@ Each of these is a separate program the app starts; none is part of the app's ow
  - ExifTool ${tool("exiftool").version}          Artistic-1.0-Perl or GPL-1.0-or-later
  - TwitchDownloaderCLI ${tool("TwitchDownloaderCLI").version}  MIT
 
+Also, only if you use Repair damaged video: untrunc, which is NOT part of the installer.
+The app downloads it from its author's GitHub release when you ask (see 2f).
+
 Exact files and their sha256 hashes: tools/manifest.json in the source repository.
 
 --- 2a. yt-dlp ${tool("yt-dlp").version}  (${tool("yt-dlp").source})
@@ -173,6 +176,17 @@ licences are in exiftool_files/Licenses_Strawberry_Perl.zip.
 ${read("licenses", "tools", "TwitchDownloader-COPYRIGHT.txt")}
 
 ${read("licenses", "tools", "TwitchDownloader-THIRD-PARTY-LICENSES.txt")}
+
+--- 2f. untrunc  (https://github.com/anthwlock/untrunc)  -- downloaded on request, not bundled
+
+untrunc is copyright Federico Ponchio, Koen Meinders, anthwlock and contributors, and is
+licensed under the GNU General Public License, version 2 or (at your option) any later
+version. Repair damaged video downloads the author's own Windows release from github.com
+only when you press its Download button, verifies it against the sha256 GitHub lists for the
+file, and keeps it in the app's data folder (tools/untrunc). The package contains the FFmpeg
+3.3.4 libraries from Zeranoe (GPL-3.0-or-later, text in 2c above). Source for untrunc, and the
+build notes for that package, are at https://github.com/anthwlock/untrunc . The GPL-2.0 text
+is at https://www.gnu.org/licenses/old-licenses/gpl-2.0.html .
 ${section(`3. Libraries inside the app (Rust, ${rust.count} packages)`)}\
 ${rust.body}\
 ${section(`4. Libraries and fonts inside the app's screens (npm, ${npm.count} packages)`)}\

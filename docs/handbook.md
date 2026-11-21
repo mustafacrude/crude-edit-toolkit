@@ -33,6 +33,7 @@ A desktop app that does the chores that come before editing in Premiere: getting
 | ffmpeg and ffprobe | Reading files, converting, cutting, joining, extracting |
 | exiftool | Reading and removing image metadata |
 | TwitchDownloaderCLI | Twitch chat replays |
+| untrunc (Windows, downloaded on request) | Repairing recordings that were cut off |
 
 They come with the app, at pinned versions with checked hashes. Nothing is installed elsewhere, nothing runs at startup, there is no account, and nothing is sent anywhere except the requests the download tools make to the sites you ask for.
 
@@ -214,6 +215,16 @@ Shrinks a clip to fit an upload limit: 10 MB (Discord free), 50 MB, 500 MB or yo
 
 A copy with metadata, chapters and Content Credentials (C2PA) removed. Nothing is re-encoded, so it takes seconds.
 
+### Repair damaged video (Windows)
+
+For a recording that was cut off before it was finished (the power went, the app crashed, the card was pulled), so it won't open or shows no length. It uses [untrunc](https://github.com/anthwlock/untrunc) to rebuild the file.
+
+1. **Download untrunc** the first time. It isn't built into the app: it comes straight from its author's GitHub page (about 13 MB), is checked against the checksum GitHub lists for it, and is run once before it's used. Nothing else is downloaded.
+2. Choose the damaged video, then a **working example**: a video that plays normally, recorded by the same camera with the same settings. untrunc learns from it how the camera writes its files, so a clip from the same session works best.
+3. Press **Run**. You get a new file named `... (repaired)` in the Toolkit folder next to the original. The damaged original is not changed.
+
+If it says only the first part of the recording could be rebuilt, try **Skip over damaged sections** (slower, and the picture may glitch where the damage was), or a different working example. If the file is complete but plays badly, use Make Premiere-safe instead. There's no Mac version, because untrunc's author doesn't publish one.
+
 ## 6. Cutting, joining and extracting
 
 ### Clip parts
@@ -282,6 +293,7 @@ Settings → **Updates and notifications**.
 
 - **The app.** When it opens (at most once a day) the app looks for a newer version. If there is one, **Update available** appears in the top bar. Opening it shows the version and what's new; **Install and restart** downloads it, checks its signature and restarts into it. It won't install while jobs are running, because restarting would stop them. Your settings and history carry over.
 - **yt-dlp.** Sites change constantly and an old yt-dlp is what breaks first, so it can be updated between app releases. The new copy comes from yt-dlp's own GitHub release, is checked against that release's published checksum, and is run once before it's used. It's kept in the app's data folder; the copy that came with the app is never touched, and **Use the built-in one** goes back to it. A new app version brings its own yt-dlp and drops any downloaded copy. The other tools (ffmpeg, Deno, ExifTool, TwitchDownloaderCLI) update with the app.
+- **untrunc.** Only once you've downloaded it for Repair damaged video. Its author publishes new builds under one rolling "latest" release, so a version is the build's commit (like `87a5d92`). The daily check also looks for a newer one, and Settings has an **Update untrunc** button; the old build is removed once the new one passes its test run. It won't update while jobs are running.
 - **Nothing installs by itself.** Looking for updates only looks. You can turn the launch check off here, and **Check for updates** works any time.
 - **A notification** appears when the whole queue finishes while the app isn't in front ("Done: clip.mp4", "All 3 jobs are done", "2 done, 1 couldn't be finished"). Untick the option to turn it off.
 
@@ -330,6 +342,7 @@ Windows: `%APPDATA%\net.crudes.edittoolkit\`. Mac: `~/Library/Application Suppor
 | Encoder test results | `encoders.json` |
 | Scratch files | `tmp\` (emptied every time the app starts) |
 | A newer yt-dlp, if you updated it | `tools\yt-dlp\<version>\` and `tools\active.json` |
+| untrunc, if you downloaded it | `tools\untrunc\<build>\` and `tools\untrunc-active.json` |
 | When updates were last checked | `update-check.txt` |
 
 Pressing **Clear finished** in History removes finished jobs and their logs. The files they made stay.

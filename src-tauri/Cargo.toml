@@ -34,6 +34,7 @@ base64 = "0.22"
 tauri-plugin-notification = "2"
 tauri-plugin-updater = "2"
 sha2 = "0.10"
+zip = { version = "9.8.1", default-features = false, features = ["deflate"] }
 
 # guard.rs: job object limits, free disk space, keeping the computer awake.
 [target.'cfg(windows)'.dependencies]

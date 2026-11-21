@@ -289,6 +289,11 @@ pub fn explain(tool: Tool, exit_code: Option<i32>, log_tail: &[String], signed_i
     {
         return SIGN_IN_REJECTED.into();
     }
+    if tool == Tool::Untrunc
+        && let Some(message) = explain_untrunc(exit_code, log_tail)
+    {
+        return message;
+    }
     for line in log_tail.iter().rev() {
         for (needle, message, _) in PATTERNS {
             if line.contains(needle) {
@@ -328,6 +333,24 @@ pub fn explain(tool: Tool, exit_code: Option<i32>, log_tail: &[String], signed_i
             tool.name()
         ),
     }
+}
+
+/// untrunc's own failures are terse (a bare assertion, "Could not open file").
+fn explain_untrunc(exit_code: Option<i32>, log_tail: &[String]) -> Option<String> {
+    let has = |needle: &str| log_tail.iter().any(|l| l.contains(needle));
+    if has("Could not open file") || has("Unable to open") {
+        return Some(
+            "untrunc couldn't open one of the files. Check that both still exist and aren't open in another program."
+                .into(),
+        );
+    }
+    if has("Assertion") || has("assertion") || exit_code == Some(3) {
+        return Some(
+            "untrunc couldn't make sense of this file. The working example has to come from the same camera with the same settings, and be a normal MP4 or MOV."
+                .into(),
+        );
+    }
+    None
 }
 
 /// What a fix needs to know about the job that failed.

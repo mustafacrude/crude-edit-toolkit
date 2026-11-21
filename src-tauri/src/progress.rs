@@ -33,6 +33,8 @@ pub enum ProgressKind {
     },
     /// TwitchDownloaderCLI's "[STATUS] - Downloading 25%" lines.
     TwitchChat,
+    /// untrunc's "38.3%" redraws, each separated by a carriage return.
+    Untrunc,
     /// No progress available; the job shows as indeterminate.
     None,
 }
@@ -64,6 +66,9 @@ pub enum Feed {
     Creating(PathBuf),
     /// yt-dlp found the file already in the folder and didn't download it again.
     Reused(PathBuf),
+    /// The tool finished its way but says the result is only partly good. It becomes
+    /// the job's warning if the job otherwise succeeds.
+    Note(String),
 }
 
 pub enum Parser {
@@ -73,6 +78,9 @@ pub enum Parser {
         open_ended: bool,
     },
     TwitchChat,
+    /// The last percentage reported, so a tool that redraws every tenth of a percent
+    /// doesn't make the job report a thousand times.
+    Untrunc(f64),
     None,
 }
 
@@ -88,6 +96,7 @@ impl Parser {
                 open_ended: *open_ended,
             },
             ProgressKind::TwitchChat => Parser::TwitchChat,
+            ProgressKind::Untrunc => Parser::Untrunc(-1.0),
             ProgressKind::None => Parser::None,
         }
     }
@@ -103,9 +112,43 @@ impl Parser {
                 ),
             },
             Parser::TwitchChat => parse_twitch_chat(line),
+            Parser::Untrunc(last) => parse_untrunc(line, last),
             _ => Feed::Log,
         }
     }
+}
+
+/// untrunc prints "38.3%" while it reads, and "Error: unable to find correct codec ->
+/// premature end (~38.32%)" when it can't go on matching the file to the example. It
+/// still saves what it rebuilt and exits normally, so the second one is a warning.
+fn parse_untrunc(line: &str, last: &mut f64) -> Feed {
+    let line = line.trim();
+    if let Some(pct) = line
+        .strip_suffix('%')
+        .and_then(|n| n.trim().parse::<f64>().ok())
+    {
+        let fraction = (pct / 100.0).clamp(0.0, 1.0);
+        if (fraction - *last).abs() < 0.005 && fraction < 1.0 {
+            return Feed::Consumed;
+        }
+        *last = fraction;
+        return Feed::Update(Progress {
+            fraction: Some(fraction),
+            ..Default::default()
+        });
+    }
+    if line.starts_with("Error:")
+        && let Some((_, rest)) = line.split_once("premature end (~")
+        && let Some(pct) = rest
+            .split('%')
+            .next()
+            .and_then(|n| n.trim().parse::<f64>().ok())
+    {
+        return Feed::Note(format!(
+            "Only the first {pct:.0}% of the recording could be rebuilt. The rest didn't match the working example. A second example from the same camera, or \"Skip over damaged sections\", may recover more."
+        ));
+    }
+    Feed::Log
 }
 
 /// "[STATUS] - Downloading 25%" → 25%. Other status lines are just chatter.
@@ -440,6 +483,34 @@ mod tests {
                 r"[download] D:\Dl\My Video [60-90].mp4 has already been downloaded"
             ),
             Feed::Reused(PathBuf::from(r"D:\Dl\My Video [60-90].mp4"))
+        );
+    }
+
+    #[test]
+    fn untrunc_percentages_are_thinned_and_a_cut_short_result_is_noted() {
+        let mut p = Parser::new(&ProgressKind::Untrunc);
+        let pct = |p: &mut Parser, line: &str| match p.feed(Source::Stdout, line) {
+            Feed::Update(u) => Some(u.fraction.unwrap()),
+            Feed::Consumed => None,
+            other => panic!("unexpected {other:?}"),
+        };
+        assert_eq!(pct(&mut p, "0%  "), Some(0.0));
+        // Redraws every tenth of a percent are not each reported.
+        assert!((pct(&mut p, "38.3%  ").unwrap() - 0.383).abs() < 1e-9);
+        assert_eq!(pct(&mut p, "38.4%  "), None);
+        assert_eq!(pct(&mut p, "39%  "), Some(0.39));
+        assert_eq!(pct(&mut p, "100%"), Some(1.0));
+
+        let Feed::Note(note) = p.feed(
+            Source::Stdout,
+            "Error: unable to find correct codec -> premature end (~38.32%)",
+        ) else {
+            panic!("expected a note")
+        };
+        assert!(note.starts_with("Only the first 38% of the recording"));
+        assert_eq!(
+            p.feed(Source::Stdout, "Info: saving a.mp4"),
+            Feed::Log
         );
     }
 

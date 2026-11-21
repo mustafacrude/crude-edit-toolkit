@@ -23,6 +23,7 @@ import {
   ToolForm,
   type FormValues,
 } from "@/components/tool-form";
+import { UntruncSetup, useUntrunc } from "@/components/untrunc-setup";
 import { Button } from "@/components/ui/button";
 
 const INSPECT = "inspect";
@@ -43,6 +44,7 @@ const BLURBS: Record<string, string> = {
   "audio-extract": "Every track, or one",
   compress: "Hit a size, e.g. 10 MB",
   proxy: "Light copies for smooth editing",
+  untrunc: "Recover a cut-off recording",
   inspect: "What's inside, in detail",
 };
 /** Images only: saving pictures from links and the clipboard, not files. */
@@ -277,6 +279,13 @@ function ToolPanel({
   const { start, error } = useJobs();
   const [values, setValues] = useState<FormValues>(() => remembered(tool.id, tool.schema));
   const [queued, setQueued] = useState(false);
+  // Repair needs untrunc downloaded first, and a working example chosen.
+  const needsUntrunc = tool.id === "untrunc";
+  const untrunc = useUntrunc();
+  const missing = tool.schema.some(
+    (f) => f.kind === "file" && f.required && !values[f.key],
+  );
+  const blocked = needsUntrunc && (!untrunc.installed || missing);
 
   // Picking different files or settings re-arms the button.
   useEffect(() => setQueued(false), [files, values]);
@@ -301,6 +310,7 @@ function ToolPanel({
           {tool.description}
         </p>
       </div>
+      {needsUntrunc && <UntruncSetup />}
       {tool.schema.length > 0 && (
         <ToolForm
           schema={tool.schema}
@@ -316,6 +326,7 @@ function ToolPanel({
           disabled={
             files.length === 0 ||
             queued ||
+            blocked ||
             (tool.combinesInputs && files.length < 2)
           }
         >
@@ -327,7 +338,11 @@ function ToolPanel({
             ? `Choose a ${noun} first.`
             : tool.combinesInputs && files.length < 2
               ? "Choose at least two files."
-              : "New files go in a Toolkit folder next to each original."}
+              : needsUntrunc && !untrunc.installed
+                ? "Download untrunc first."
+                : blocked
+                  ? "Choose a working example first."
+                  : "New files go in a Toolkit folder next to each original."}
         </span>
       </div>
       {error && <p className="text-[13px] text-status-error">{error}</p>}

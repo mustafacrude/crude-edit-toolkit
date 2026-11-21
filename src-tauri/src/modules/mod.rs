@@ -16,6 +16,7 @@ mod proxy;
 mod remux;
 pub mod schema;
 mod strip;
+mod untrunc;
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -270,6 +271,11 @@ pub trait Module: Send + Sync {
     /// One or two plain sentences: what it does and what you get.
     fn description(&self) -> &'static str;
     fn category(&self) -> Category;
+    /// False when the tool can't run on this computer (untrunc is Windows-only for now);
+    /// it's then left out of the tool lists.
+    fn available(&self) -> bool {
+        true
+    }
     fn lane(&self) -> Lane;
     fn accepts(&self) -> Accepts {
         Accepts::Video
@@ -356,6 +362,7 @@ static MODULES: &[&dyn Module] = &[
     &audio_extract::AudioExtract,
     &compress::Compress,
     &proxy::Proxies,
+    &untrunc::Untrunc,
     &image_tools::PremiereImage,
     &image_tools::StripImage,
     &image_tools::ConvertWebp,

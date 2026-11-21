@@ -20,6 +20,8 @@ pub enum Tool {
     Ffprobe,
     Exiftool,
     TwitchDownloader,
+    /// Not bundled: downloaded on request (see untrunc_update.rs), Windows only.
+    Untrunc,
 }
 
 impl Tool {
@@ -40,6 +42,7 @@ impl Tool {
             Tool::Ffprobe => "ffprobe",
             Tool::Exiftool => "exiftool",
             Tool::TwitchDownloader => "TwitchDownloaderCLI",
+            Tool::Untrunc => "untrunc",
         }
     }
 
@@ -51,6 +54,7 @@ impl Tool {
             Tool::Ffprobe => "Inspects video files",
             Tool::Exiftool => "Removes metadata and C2PA from images",
             Tool::TwitchDownloader => "Downloads Twitch VOD chat",
+            Tool::Untrunc => "Repairs cut-off MP4 and MOV recordings",
         }
     }
 
@@ -62,7 +66,7 @@ impl Tool {
             Tool::Ffmpeg => Some("ffmpeg"),
             Tool::Ffprobe => Some("ffprobe"),
             Tool::TwitchDownloader => Some("TwitchDownloaderCLI"),
-            Tool::Exiftool => None,
+            Tool::Exiftool | Tool::Untrunc => None,
         }
     }
 
@@ -71,16 +75,22 @@ impl Tool {
             Tool::YtDlp | Tool::Deno | Tool::TwitchDownloader => &["--version"],
             Tool::Ffmpeg | Tool::Ffprobe => &["-hide_banner", "-version"],
             Tool::Exiftool => &["-ver"],
+            Tool::Untrunc => &["-V"],
         }
     }
 
     /// Pulls the bare version number out of the tool's version output.
     fn parse_version(self, stdout: &str) -> Option<String> {
         let first = stdout.lines().map(str::trim).find(|l| !l.is_empty())?;
+        if self == Tool::Untrunc {
+            // "version 'v1-87a5d92-dirty' using ffmpeg '3.3.4' ...": the build is its commit.
+            return crate::untrunc_update::commit_of(first);
+        }
         let version = match self {
             Tool::YtDlp | Tool::Exiftool => first,
             // "deno 2.9.8 (stable, ...)" / "TwitchDownloaderCLI 1.56.5+f8335ca..."
             Tool::Deno | Tool::TwitchDownloader => first.split_whitespace().nth(1)?,
+            Tool::Untrunc => unreachable!("returned above"),
             // "ffmpeg version n9.0.2-35-g9a9b70bb8c-20261024 Copyright ..."
             Tool::Ffmpeg | Tool::Ffprobe => {
                 let raw = first.split_whitespace().nth(2)?;
@@ -96,6 +106,10 @@ impl Tool {
             && let Some(newer) = crate::tool_update::override_path(app)
         {
             return Ok(newer);
+        }
+        if self == Tool::Untrunc {
+            return Ok(crate::untrunc_update::installed_path(app)
+                .unwrap_or_else(|| crate::untrunc_update::expected_path(app)));
         }
         let exe_suffix = std::env::consts::EXE_SUFFIX;
         match self.sidecar() {
@@ -303,7 +317,11 @@ pub fn inspect(app: &AppHandle, tool: Tool) -> ToolInfo {
 
     if !path.exists() {
         info.missing = true;
-        info.error = Some("Missing from the app folder. Reinstall the app to restore it.".into());
+        info.error = Some(if tool == Tool::Untrunc {
+            "Not downloaded yet. Video tools > Repair damaged video has the button.".into()
+        } else {
+            "Missing from the app folder. Reinstall the app to restore it.".into()
+        });
         return info;
     }
 
@@ -362,6 +380,12 @@ mod tests {
         assert_eq!(
             Tool::Exiftool.parse_version("13.59\r\n").as_deref(),
             Some("13.59")
+        );
+        assert_eq!(
+            Tool::Untrunc
+                .parse_version("version 'v1-87a5d92-dirty' using ffmpeg '3.3.4' Lavc57.89.100\r\n")
+                .as_deref(),
+            Some("87a5d92")
         );
         assert_eq!(Tool::YtDlp.parse_version("\n\n"), None);
     }

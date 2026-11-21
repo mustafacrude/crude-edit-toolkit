@@ -62,6 +62,16 @@ pub enum Field {
         placeholder: &'static str,
         help: Option<&'static str>,
     },
+    /// One more file the job needs besides the one being worked on (a working
+    /// example, for untrunc). Sent as its path, or an empty string while unchosen.
+    #[serde(rename_all = "camelCase")]
+    File {
+        key: &'static str,
+        label: &'static str,
+        help: Option<&'static str>,
+        /// The job can't start until a file is chosen.
+        required: bool,
+    },
     /// The shared encode settings panel (frame rate, quality or bitrate…).
     #[serde(rename_all = "camelCase")]
     Encode { key: &'static str },

@@ -47,4 +47,13 @@ export function useUpdates() {
 
 /** True when there's anything to install. */
 export const hasUpdate = (found: UpdatesFound | null) =>
-  !!found && (!!found.app || !!found.ytDlp?.available);
+  !!found &&
+  (!!found.app || !!found.ytDlp?.available || !!found.untrunc?.available);
+
+/** What's left to install once untrunc has been updated; null when nothing is. */
+export const withoutUntrunc = (found: UpdatesFound | null): UpdatesFound | null =>
+  found && (found.app || found.ytDlp) ? { ...found, untrunc: null } : null;
+
+/** The same for yt-dlp. */
+export const withoutYtDlp = (found: UpdatesFound | null): UpdatesFound | null =>
+  found && (found.app || found.untrunc) ? { ...found, ytDlp: null } : null;

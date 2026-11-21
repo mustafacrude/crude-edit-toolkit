@@ -29,6 +29,7 @@ screen and its Run button come for free.
 | `Number` | Number input with a unit, or a slider (`slider: true`); `show_when` hides it unless another field has a value (compared as text, so a toggle is `"true"`/`"false"`) | number |
 | `Toggle` | Checkbox | boolean |
 | `Lines` | Multi-line text | array of non-empty lines |
+| `File` | A button that chooses one more file (a working example), shown as its name; `required: true` keeps Run disabled until chosen | the path, or `""` |
 | `Encode` | The shared encode panel (codec, frame rate, quality or bitrate, keyframes, audio) | `EncodeSettings` |
 | `TrimList` | The chosen files in order, each with start/end and reorder buttons | `[{start, end}]` in file order |
 
